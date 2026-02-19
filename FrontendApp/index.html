@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Asset Tracker Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            padding: 0;
+            margin: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        /* Navigasi Tab / Menu Atas */
+        .navbar {
+            background: #0078D7;
+            padding: 10px 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: white;
+            border: none;
+            font-size: 1rem;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .tab-btn.active {
+            background: #005A9E;
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #0069c0;
+        }
+
+        /* Container Utama */
+        .content {
+            padding: 20px;
+        }
+
+        /* Menyembunyikan halaman yang tidak aktif */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button.btn-primary {
+            width: 100%;
+            padding: 10px;
+            background: #0078D7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button.btn-primary:hover {
+            background: #005A9E;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+        }
+
+        button.btn-danger {
+            padding: 5px 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* Market Category Badges */
+        .category-tabs {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .cat-btn {
+            padding: 8px 15px;
+            border: 1px solid #0078D7;
+            background: white;
+            color: #0078D7;
+            cursor: pointer;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .cat-btn.active {
+            background: #0078D7;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <button class="tab-btn active" onclick="switchTab('portofolio', this)">💼 Portofolio Saya</button>
+        <button class="tab-btn" onclick="switchTab('market', this)">📊 Market Info (ID)</button>
+    </div>
+
+    <div class="content">
+        <div id="portofolio" class="page active">
+            <h1 style="margin-bottom: 20px;">Personal Asset Tracker</h1>
+            <div class="grid">
+                <div class="card">
+                    <h2>➕ Tambah Aset</h2>
+                    <form id="addAssetForm">
+                        <div class="form-group">
+                            <label>Simbol Aset (Contoh: BBCA, GOTO)</label>
+                            <input type="text" id="symbol" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah Unit / Lot</label>
+                            <input type="number" step="0.01" id="quantity" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Harga Beli (Satuan)</label>
+                            <input type="number" step="0.01" id="buyPrice" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Simpan ke Portofolio</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>💼 Portofolio Saya</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Simbol</th>
+                                <th>Jumlah</th>
+                                <th>Harga Beli</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assetTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align:center;">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="market" class="page">
+            <h1 style="margin-bottom: 20px;">Live Market Data (Yahoo Finance)</h1>
+            <div class="card">
+                <div class="category-tabs">
+                    <button class="cat-btn active" onclick="loadMarketData('LQ45', this)">🔥 Top LQ45</button>
+                    <button class="cat-btn" onclick="loadMarketData('BANK', this)">🏦 Bank Digital & Big 4</button>
+                    <button class="cat-btn" onclick="loadMarketData('TECH', this)">💻 Tech & Startup</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Simbol</th>
+                            <th>Nama Perusahaan</th>
+                            <th>Harga Terkini</th>
+                            <th>Perubahan (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marketTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align:center;">Pilih kategori di atas untuk memuat data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Logika Tab Navigasi Desktop
+        function switchTab(pageId, btnElement) {
+            // Sembunyikan semua halaman
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            // Munculkan halaman yang diklik
+            document.getElementById(pageId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        const API_URL = 'http://localhost:5199/api/assets';
+
+        function loadAssets() {
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('assetTableBody');
+
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada aset.</td></tr>';
+                        return;
+                    }
+
+                    // Build HTML string first to avoid flickering
+                    let rows = '';
+                    data.forEach(asset => {
+                        rows += `
+                            <tr>
+                                <td><strong>${asset.symbol}</strong></td>
+                                <td>${asset.quantity}</td>
+                                <td>Rp ${asset.buyPrice.toLocaleString()}</td>
+                                <td><button class="btn-danger" onclick="deleteAsset(${asset.id})">Jual</button></td>
+                            </tr>`;
+                    });
+                    tbody.innerHTML = rows;
+                })
+                .catch(err => {
+                    console.error("Error connecting to backend:", err);
+                    // We don't clear the table on error so the old data (or "Loading...") stays visible
+                });
+        }
+
+        document.getElementById('addAssetForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const newAsset = {
+                symbol: document.getElementById('symbol').value.toUpperCase(),
+                quantity: parseFloat(document.getElementById('quantity').value),
+                buyPrice: parseFloat(document.getElementById('buyPrice').value),
+                purchaseDate: new Date().toISOString()
+            };
+            fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newAsset) })
+                .then(res => { if (res.ok) { this.reset(); loadAssets(); } });
+        });
+
+        function deleteAsset(id) {
+            if (confirm("Yakin ingin menghapus?")) fetch(`${API_URL}/${id}`, { method: 'DELETE' }).then(() => loadAssets());
+        }
+
+        // Load immediately
+        loadAssets();
+
+        // Poll every 5 seconds to auto-refresh data
+        setInterval(loadAssets, 5000);
+
+        function loadMarketData(category, btnElement) {
+            // Update UI Button Aktif
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            const tbody = document.getElementById('marketTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">⏳ Mengambil data dari Yahoo Finance...</td></tr>';
+
+            // TODO: Nanti kita tembak API C# kita di sini!
+            console.log(`Meminta data ${category} dari backend...`);
+        }
+    </script>
+</body>
+
+</html>
